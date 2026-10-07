@@ -36,6 +36,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v7
         with:
-          path: dist/${{ steps.vars.outputs.AFCT }}
+          path: dist/${{ steps.vars.outputs.AFCT }}.jar
           name: ${{ steps.vars.outputs.AFCT }}
           if-no-files-found: error
