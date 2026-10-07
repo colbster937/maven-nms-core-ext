@@ -1,0 +1,40 @@
+on:
+  push:
+    paths:
+      - 'src/**'
+      - '.github/workflows/publish.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - id: vars
+        run: |
+          echo "JAVA=$(mvn help:evaluate -Dexpression=maven.compiler.release -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+          echo "AFCT=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-java@v5
+        with:
+          distribution: liberica
+          java-version: ${{ steps.vars.outputs.JAVA }}
+          server-id: github
+          server-username: GITHUB_ACTOR
+          server-password: GITHUB_TOKEN
+      - run: mvn -B -DskipTests deploy
+        env:
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v7
+        with:
+          path: dist/${{ steps.vars.outputs.AFCT }}
+          name: ${{ steps.vars.outputs.AFCT }}
+          if-no-files-found: error
