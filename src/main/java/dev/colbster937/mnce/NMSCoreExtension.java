@@ -12,6 +12,7 @@ import org.apache.maven.model.PluginManagement;
 import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.descriptor.MojoDescriptor;
+import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
@@ -37,7 +38,7 @@ public final class NMSCoreExtension extends AbstractMavenLifecycleParticipant {
   @Override
   public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
     session.getProjects().forEach(project -> {
-      boolean[] init = { false };
+      final boolean[] init = { false };
 
       project.getDependencies().forEach(dependency -> {
         if (
@@ -55,13 +56,17 @@ public final class NMSCoreExtension extends AbstractMavenLifecycleParticipant {
 
             final Version version = repositorySystem.resolveVersionRange(
               session.getRepositorySession(),
-              new VersionRangeRequest(artifact, null, null)
+              new VersionRangeRequest(artifact, project.getRemoteProjectRepositories(), null)
             ).getHighestVersion();
 
             if (version != null) {
               repositorySystem.resolveArtifact(
                 session.getRepositorySession(),
-                new ArtifactRequest(artifact.setVersion(version.toString()), null, null)
+                new ArtifactRequest(
+                  artifact.setVersion(version.toString()),
+                  project.getRemoteProjectRepositories(),
+                  null
+                )
               );
 
               return;
@@ -93,6 +98,7 @@ public final class NMSCoreExtension extends AbstractMavenLifecycleParticipant {
 
             if (mojo != null) {
               final MojoExecution execution = new MojoExecution(mojo);
+              execution.setMojoDescriptor(mojo);
 
               final Xpp3Dom configuration = new Xpp3Dom("configuration");
 
@@ -106,7 +112,13 @@ public final class NMSCoreExtension extends AbstractMavenLifecycleParticipant {
 
               execution.setConfiguration(configuration);
 
-              pluginManager.executeMojo(session, execution);
+              final MavenProject currentProject = session.getCurrentProject();
+              try {
+                session.setCurrentProject(project);
+                pluginManager.executeMojo(session, execution);
+              } finally {
+                session.setCurrentProject(currentProject);
+              }
             } else {
               throw new IllegalStateException();
             }
