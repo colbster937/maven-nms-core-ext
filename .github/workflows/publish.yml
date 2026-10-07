@@ -2,6 +2,7 @@ on:
   push:
     paths:
       - 'src/**'
+      - 'pom.xml'
       - '.github/workflows/publish.yml'
   workflow_dispatch:
 
