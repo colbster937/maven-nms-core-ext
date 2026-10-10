@@ -13,6 +13,7 @@ import org.apache.maven.plugin.BuildPluginManager;
 import org.apache.maven.plugin.MojoExecution;
 import org.apache.maven.plugin.descriptor.MojoDescriptor;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.classworlds.realm.ClassRealm;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.artifact.Artifact;
@@ -37,6 +38,16 @@ public final class NMSCoreExtension extends AbstractMavenLifecycleParticipant {
 
   @Override
   public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
+    final ClassLoader loader = Thread.currentThread().getContextClassLoader();
+
+    try {
+      if (loader instanceof ClassRealm realm) {
+        realm.importFrom(realm.getWorld().getClassRealm("maven.ext").getId(), "");
+      }
+    } catch (Exception ex) {
+      throw new RuntimeException(ex);
+    }
+
     session.getProjects().forEach(project -> {
       final boolean[] init = { false };
 
