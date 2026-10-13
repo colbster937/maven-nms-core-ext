@@ -38,11 +38,13 @@ public final class NMSCoreExtension extends AbstractMavenLifecycleParticipant {
 
   @Override
   public void afterProjectsRead(MavenSession session) throws MavenExecutionException {
-    final ClassLoader loader = Thread.currentThread().getContextClassLoader();
-
     try {
-      if (loader instanceof ClassRealm realm) {
-        realm.importFrom(realm.getWorld().getClassRealm("maven.ext").getId(), "");
+      if (Thread.currentThread().getContextClassLoader() instanceof ClassRealm realm) {
+        ClassRealm extensionRealm = realm.getWorld().getClassRealm("maven.ext");
+
+        if (extensionRealm != null) {
+          realm.importFrom(extensionRealm.getId(), "");
+        }
       }
     } catch (Exception ex) {
       throw new RuntimeException(ex);
