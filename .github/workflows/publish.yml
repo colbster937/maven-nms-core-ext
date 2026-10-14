@@ -30,10 +30,19 @@ jobs:
           server-id: github
           server-username: GITHUB_ACTOR
           server-password: GITHUB_TOKEN
-      - run: mvn -B -DskipTests deploy
+      - run: |
+          PROFILES="deploy.github"
+
+          if [[ "$CODEBERG_LOGIN" == "true" ]]; then
+            PROFILES="$PROFILES,deploy.codeberg"
+          fi
+
+          mvn -B -DskipTests -P"$PROFILES" clean deploy
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CODEBERG_USERNAME: ${{ vars.CODEBERG_USERNAME }}
+          CODEBERG_PASSWORD: ${{ secrets.CODEBERG_PASSWORD }}
       - uses: actions/upload-artifact@v7
         with:
           path: target/${{ steps.vars.outputs.AFCT }}.jar
