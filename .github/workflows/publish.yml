@@ -33,7 +33,7 @@ jobs:
       - run: |
           PROFILES="deploy.github"
 
-          if [[ "$CODEBERG_LOGIN" == "true" ]]; then
+          if [[ -n "$CODEBERG_USERNAME" && -n "$CODEBERG_PASSWORD" ]]; then
             PROFILES="$PROFILES,deploy.codeberg"
           fi
 
