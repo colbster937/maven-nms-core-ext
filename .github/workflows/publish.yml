@@ -19,10 +19,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+
+      - uses: stCarolas/setup-maven@v5
+        with:
+          maven-version: '3.9.16'
+
       - id: vars
         run: |
           echo "JAVA=$(mvn help:evaluate -Dexpression=maven.compiler.release -q -DforceStdout)" >> "$GITHUB_OUTPUT"
           echo "AFCT=$(mvn help:evaluate -Dexpression=project.build.finalName -q -DforceStdout)" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-java@v6
         with:
           distribution: liberica
@@ -31,6 +37,7 @@ jobs:
           mvn-server-credentials: |
             github:GITHUB_ACTOR:GITHUB_TOKEN
             codeberg:CODEBERG_USERNAME:CODEBERG_PASSWORD
+
       - run: |
           PROFILES="deploy.github"
 
@@ -44,6 +51,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CODEBERG_USERNAME: ${{ vars.CODEBERG_USERNAME }}
           CODEBERG_PASSWORD: ${{ secrets.CODEBERG_PASSWORD }}
+
       - uses: actions/upload-artifact@v7
         with:
           path: target/${{ steps.vars.outputs.AFCT }}.jar
