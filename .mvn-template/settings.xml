@@ -1,0 +1,17 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+  <profiles>
+    <profile>
+      <id>nms-core-ext</id>
+      <pluginRepositories>
+        <pluginRepository>
+          <id>nms-core-ext</id>
+          <url>https://codeberg.org/api/packages/colbster937/maven/</url>
+        </pluginRepository>
+      </pluginRepositories>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>nms-core-ext</activeProfile>
+  </activeProfiles>
+</settings>
